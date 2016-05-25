@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var expect = require('chai').expect;
+var assert = require('chai').assert;
 var connect = require('../index').connect;
 var Document = require('../index').Document;
 var Data = require('./data');
@@ -198,6 +199,24 @@ describe('Client', function() {
                 expect(isNativeId(u.address)).to.be.true;
             }).then(done, done);
         });
+    });
+
+    describe('#findOneOrFail()', function(){
+      it('should not load an object from the collection and throw an error', function(done) {
+
+          var data = getData1();
+
+          data.save().then(function() {
+              validateId(data);
+              return Data.findOneOrFail({foo : true});
+          }).then(function(d) {
+              // Throw this if we don't get an exception
+              assert.fail(0, 1, 'Exception not thrown');
+          }).catch(function(err) {
+              expect(err).to.be.an.instanceof(Error);
+              expect(err.message).to.equal('Document not found');
+          }).then(done, done);
+      });
     });
 
     describe('#findOneAndUpdate()', function() {
@@ -509,6 +528,31 @@ describe('Client', function() {
                 expect(isNativeId(users[1].address)).to.be.true;
             }).then(done, done);
         });
+    });
+
+    describe('#findOrFail()', function(){
+      class City extends Document {
+          constructor() {
+              super();
+
+              this.name = String;
+              this.population = Number;
+          }
+
+          static collectionName() {
+              return 'cities';
+          }
+      }
+
+      it('should not load any objects from the collection and throw an error', function(done) {
+          User.findOrFail({}).then(function(){
+              // Throw this if we don't get an exception
+              assert.fail(0, 1, 'Exception not thrown');
+          }).catch(function(err){
+              expect(err).to.be.an.instanceof(Error);
+              expect(err.message).to.equal('Document not found');
+          }).then(done, done);
+      });
     });
 
     describe('#count()', function() {
